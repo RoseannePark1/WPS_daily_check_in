@@ -35,7 +35,6 @@ for i in invite_userids:
         if js['result'] == 'ok':
             mk += 1
        
-            
 print('成功邀请%d位好友'%(mk))   
 
 SERVER_KEY = os.getenv('SERVER_KEY')
