@@ -16,32 +16,53 @@ sids = [
     "V02SPoOluAnWda0dTBYTXpdetS97tyI00a16135e002684bb5c",
     "V02Sb8gxW2inr6IDYrdHK_ywJnayd6s00ab7472b0026849b17",
     "V02SwV15KQ_8n6brU98_2kLnnFUDUOw00adf3fda0026934a7f",
+    "V02SC1mOHS0RiUBxeoA8NTliH2h2NGc00a803c35002693584d"
 ]
 mk = 0
 
-def request_re(sid, invite_userid, rep = 30):
+def request_re(sid, invite_userid, rep=30):
     invite_url = 'http://zt.wps.cn/2018/clock_in/api/invite'
-    r = requests.post( invite_url, headers={ 'sid': sid }, data={ 'invite_userid': invite_userid, "client_code": "040ce6c23213494c8de9653e0074YX30", "client": "alipay" } )    if js['msg'] == 'tryLater' and rep > 0:
-    js = json.loads(r.content)
-    if js['msg'] == 'tryLater' and rep > 0:
-        rep -= 1
-        time.sleep(10
-        r = request_re(sid, invite_userid, rep)
-    return r
+#     r = requests.post(invite_url, headers={'sid': sid}, data={'invite_userid': invite_userid})
+    r = requests.post(invite_url, headers={'sid': sid},
+                      data={'invite_userid': invite_userid, "client_code": "040ce6c23213494c8de9653e0074YX30",
+                            "client": "alipay"})
+    try:
+        js = json.loads(r.content)
+        if js['msg'] == 'tryLater' and rep > 0:
+            rep -= 1
+            time.sleep(10)
+            r = request_re(sid, invite_userid, rep)
+        return r
+    except IOError:
+        return 'skip'
+    except:
+        return 'skip'
+
 
 for i in invite_userids:
     for j in sids:
         r = request_re(j, i)
-        js = json.loads(r.content)
-        if js['result'] == 'ok':
-            mk += 1
-       
+        if r == 'skip':
+            pass
+        else:
+            js = json.loads(r.content)
+            if js['result'] == 'ok':
+                mk += 1
+            
 print('成功邀请%d位好友'%(mk))   
 
 SERVER_KEY = os.getenv('SERVER_KEY')
 if SERVER_KEY:
+    text = 'WPS邀请好友任务：成功邀请到%d位好友'%(mk)
     data = {
-        'text':'WPS邀请好友任务',
+        'text':'WPS邀请好友任务：成功邀请到%d位好友'%(mk),
         'desp':'成功邀请%d位好友'%(mk)
     }
-    requests.post('https://sc.ftqq.com/%s.send'%(SERVER_KEY.strip()), data = data)
+#     requests.post('https://sc.ftqq.com/%s.send'%(SERVER_KEY.strip()), data = data)
+    requests.get('https://qmsg.zendee.cn/send/%s?msg=%s' % (SERVER_KEY.strip(), text))
+
+# BARK_URL = os.getenv('BARK_URL')
+# if BARK_URL:
+#     text = 'WPS邀请好友任务：成功邀请到%d位好友'%(mk)
+#     bark_url = BARK_URL[:-1] if BARK_URL.endswith('/') else BARK_URL
+#     requests.get(bark_url + '/%s'%(text))
